@@ -1,5 +1,5 @@
 // pages/index.tsx
-import Layout from '@/components/layout';
+import Layout from '@/components/Layout';
 import Link from 'next/link';
 
 const Home = () => {
