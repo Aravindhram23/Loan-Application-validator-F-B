@@ -1,5 +1,5 @@
 // pages/tasks.tsx
-import Layout from "@/components/layout";
+import Layout from "@/components/Layout";
 
 const Tasks = () => {
   return (

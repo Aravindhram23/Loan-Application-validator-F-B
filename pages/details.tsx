@@ -1,60 +1,108 @@
-// pages/details.tsx
-import { useRouter } from 'next/router';
-import Layout from '@/components/layout';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import Layout from '@/components/Layout';
+import { getLoanApplication } from '@/components/service/validateLoanApplication';// Adjust the import path as necessary
 
 const Details = () => {
-  const router = useRouter();
-  const { fullName, address, dateOfBirth, contactInformation, socialSecurityNumber, incomeVerification, creditScore } = router.query;
+    const [loanApplications, setLoanApplications] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
-  const handleValidate = () => {
-    // Implement API call to validate application
-    console.log('Validate application');
-  };
+    useEffect(() => {
+        const fetchLoanApplications = async () => {
+            try {
+                const data = await getLoanApplication();
+                setLoanApplications(data);
+            } catch (err) {
+                console.error('Error getting loan application:', err);
+                setError('Failed to fetch loan applications');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  const handleDelete = () => {
-    // Implement API call to delete application
-    console.log('Delete application');
-  };
+        fetchLoanApplications();
+    }, []);
 
-  const handleUpdate = () => {
-    // Implement API call to update application
-    console.log('Update application');
-  };
+    const handleValidate = (id: string) => {
+        // Implement API call to validate application
+        console.log('Validate application with ID:', id);
+    };
 
-  return (
-    <Layout>
-      <h1 className="text-2xl font-bold mb-4">Application Details</h1>
-      <div className="bg-white p-6 rounded shadow-md">
-        <p><strong>Full Name:</strong> {fullName}</p>
-        <p><strong>Address:</strong> {address}</p>
-        <p><strong>Date of Birth:</strong> {dateOfBirth}</p>
-        <p><strong>Contact Information:</strong> {contactInformation}</p>
-        <p><strong>Social Security Number:</strong> {socialSecurityNumber}</p>
-        <p><strong>Income Verification:</strong> {incomeVerification}</p>
-        <p><strong>Credit Score:</strong> {creditScore}</p>
-        <div className="mt-4 flex gap-4">
-          <button
-            onClick={handleValidate}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            Validate
-          </button>
-          <button
-            onClick={handleDelete}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Delete
-          </button>
-          <button
-            onClick={handleUpdate}
-            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-          >
-            Update
-          </button>
-        </div>
-      </div>
-    </Layout>
-  );
+    const handleDelete = async (id: string) => {
+        try {
+            await axios.delete(`http://localhost:8080/api/loan-applications/${id}`);
+            console.log('Deleted application with ID:', id);
+            setLoanApplications(loanApplications.filter(app => app.id !== id)); // Remove deleted item from list
+        } catch (err) {
+            console.error('Failed to delete application:', err);
+        }
+    };
+
+    const handleUpdate = (id: string) => {
+        // Redirect to update page or show a form to update
+        console.log('Update application with ID:', id);
+    };
+
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>{error}</p>;
+
+    return (
+        <Layout>
+            <h1 className="text-2xl font-bold mb-4">All Loan Applications</h1>
+            <div className="bg-white p-6 rounded shadow-md">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Full Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Information</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Social Security Number</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Income</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credit Score</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {loanApplications.map((application) => (
+                            <tr key={application.id}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{application.id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{application.fullName}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{application.address}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{application.dateOfBirth}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{application.contactInformation}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{application.socialSecurityNumber}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{application.incomeVerification}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{application.creditScore}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button
+                                        onClick={() => handleValidate(application.id)}
+                                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                                    >
+                                        Validate
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(application.id)}
+                                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 ml-2"
+                                    >
+                                        Delete
+                                    </button>
+                                    <button
+                                        onClick={() => handleUpdate(application.id)}
+                                        className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 ml-2"
+                                    >
+                                        Update
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </Layout>
+    );
 };
 
 export default Details;
